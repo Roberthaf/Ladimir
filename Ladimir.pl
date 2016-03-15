@@ -4,8 +4,8 @@
 #	 Robert Anton Hafthorsson
 #	
 # Description:
-#	This program is intended to compaire LADs and miR's and see if they(miR's)
-# 	are always outside the LADs or with in.
+#	This program is intended to check if miRNA's lie within cLAD region and 
+# 	identifying micro RNA gene loci genomic context according to protein coding gene.
 #
 # Modules:
 #	none
