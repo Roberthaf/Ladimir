@@ -1,5 +1,7 @@
-Ladimir - A search tool for Lamina acosiated domain and miRNA research
-======================================================================
+Ladimir
+=======
+A search tool for Lamina acosiated domain and miRNA research
+------------------------------------------------------------
 
 Installation
 ------------
