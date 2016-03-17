@@ -1,7 +1,5 @@
-Ladimir
-=======
-A search tool for Lamina acosiated domain and miRNA research
-------------------------------------------------------------
+Ladimir - A search tool for Lamina acosiated domain and miRNA research
+----------------------------------------------------------------------
 
 Installation
 ------------
@@ -44,4 +42,3 @@ DESCRIPTION
 	
 	-c			Select a cut off distance for upstream and downstream genes.
 				If no number is specified then range is 
-
