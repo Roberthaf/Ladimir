@@ -13,7 +13,7 @@ ladimir [-l cLAD file] [-m miRNA file] [-g Gene file] [-o Outputfile]
 DESCRIPTION
 	
 	Ladimir reads in cLAD,miRNA and gene files and from them analizes if miRNA's 
-	lie within the cLAD regions and what lie up and down stream of each miRNA. 	
+	lie within the cLAD regions and what genes lie up and downstream of each miRNA. 	
 	
 	
 	
