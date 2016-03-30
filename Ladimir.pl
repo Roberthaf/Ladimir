@@ -19,9 +19,6 @@
 #	4. Analizes and create statistics and output files 
 #
 #
-#		ATH: Hvernig output? Hvernig á að skoða þeta.
-#
-#
 # usage: Ladimir_v3.pl [LAD file] [miRNA file] [Gene file] "name of output"
 
 use strict;
@@ -182,14 +179,13 @@ if( (@indata[3]) =~/.+Mus musculus.+/ ) {
 	}
 }
 elsif( (@indata[3]) =~/.+Drosophila melanogaster.+/ ){
-      $species = 'Drosophila melanogaster';
+    $species = 'Drosophila melanogaster';
    print "File is from Drosophila M.\n";
     foreach  my $line (@indata ){
 		chomp $line;
 		if ($line =~ /(.{1,5})\t.\tmiRNA_primary_transcript/){
 			# This is for printing out the names of the miRNA that are inside LADS
 			$line =~ /(.{1,5})\t.\tmiRNA_primary_transcript\t(\d+)\s(\d+).+Name=(.+\b)/;
-			# push @input_mir, ["chr$1", $2, $3, $4];
 			my $mir_name = substr $4,4,(length $4);
 			push @input_mir, ["chr$1", $2, $3, $mir_name];
 		}
@@ -203,7 +199,6 @@ elsif( (@indata[3]) =~/.+Homo sapiens.+/ ){
 		if ($line =~ /(.{1,6})\t.\tmiRNA_primary_transcript/){
 			# This is for printing out the names of the miRNA that are inside LADS
 			$line =~ /(.{1,6})\t.\tmiRNA_primary_transcript\t(\d+)\s(\d+).+Name=(.+\b)/;
-			# push @input_mir, [$1, $2, $3, $4];
 			my $mir_name = substr $4,4,(length $4);
 			push @input_mir, [$1, $2, $3, $mir_name];
 		}
@@ -217,7 +212,6 @@ elsif( (@indata[3]) =~/.+Caenorhabditis elegans.+/ ){
 		if ($line =~ /(.{1,6})\t.\tmiRNA_primary_transcript/){
 			# This is for printing out the names of the miRNA that are inside LADS
 			$line =~ /(.{1,6})\t.\tmiRNA_primary_transcript\t(\d+)\s(\d+).+Name=(.+\b)/;
-			# push @input_mir, [$1, $2, $3, $4];
 			my $mir_name = substr $4,4,(length $4);
 			push @input_mir, [$1, $2, $3, $mir_name];
 		}
@@ -270,7 +264,6 @@ for ( my $i = 0;$i < $mir_scalar;$i++){
 			}
 			if ( $temp_number >=0 ){
 				push @temp_arrayH, [ $temp_number, $input_mir[$i][3],$input_genes[$j][3],$input_mir[$i][0] ];
-				
 			}
 		}
 	}
