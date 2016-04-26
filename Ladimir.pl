@@ -4,8 +4,8 @@
 #	 Robert Anton Hafthorsson
 #	
 # Description:
-#	This program is intended to check if miRNA's lie within cLAD region and 
-# 	identifying micro RNA gene loci genomic context according to protein coding gene.
+#	This program is intended to compaire LADs and miR's and see if they(miR's)
+# 	are always outside the LADs or with in.
 #
 # Modules:
 #	none
@@ -17,6 +17,9 @@
 #		2) Procces miRNA files. Identify miR´s
 #	3. Search for miRNA that lie within a cLAD region.
 #	4. Analizes and create statistics and output files 
+#
+#
+#		ATH: Hvernig output? Hvernig á að skoða þeta.
 #
 #
 # usage: Ladimir_v3.pl [LAD file] [miRNA file] [Gene file] "name of output"
@@ -59,7 +62,7 @@ if (defined $options{o}){
 	$outfile2 = "$animal.html";
 }else{
 	print "outfile is not specified\n";
-	$outfile= "outfule.txt";
+	$outfile= "outfile.txt";
 }
 if ($options{h} ) {
 print <<EOF;
@@ -128,7 +131,11 @@ open ( my $GENEFILE, '<', $gene_file )
 ## Files to write out
 open my $OUT, '>', $outfile or die "Cannot open: $outfile";
 open my $OUT2, '>', $outfile2 or die "Cannot open: $outfile2";
+
+##########PRINT OUT FILE USED FOR TROUBLE SHOOTING. REMOVE LATER
 open my $OUT3, '>', $outfile3 or die "Cannot open: $outfile3";
+##########
+
 
 ## Print Out information to command line for user.
 print "processing LAD information\n"; 
@@ -179,39 +186,44 @@ if( (@indata[3]) =~/.+Mus musculus.+/ ) {
 	}
 }
 elsif( (@indata[3]) =~/.+Drosophila melanogaster.+/ ){
-    $species = 'Drosophila melanogaster';
+      $species = 'Drosophila melanogaster'; 
    print "File is from Drosophila M.\n";
     foreach  my $line (@indata ){
 		chomp $line;
 		if ($line =~ /(.{1,5})\t.\tmiRNA_primary_transcript/){
-			# This is for printing out the names of the miRNA that are inside LADS
+		# This is for printing out the names of the miRNA that are inside LADS
 			$line =~ /(.{1,5})\t.\tmiRNA_primary_transcript\t(\d+)\s(\d+).+Name=(.+\b)/;
 			my $mir_name = substr $4,4,(length $4);
-			push @input_mir, ["chr$1", $2, $3, $mir_name];
+			my $chr_name = $1;
+			$chr_name =~ s/2RHet/2R/;	
+			$chr_name =~ s/2LHet/2L/;	
+			push @input_mir, ["chr$chr_name", $2, $3, $mir_name];
 		}
 	}
 }
 elsif( (@indata[3]) =~/.+Homo sapiens.+/ ){
-   $species = 'Homo sapiens';
+   $species = 'Homo sapiens'; 
    print "File is from Human\n";
    foreach  my $line (@indata ){
 		chomp $line;
 		if ($line =~ /(.{1,6})\t.\tmiRNA_primary_transcript/){
 			# This is for printing out the names of the miRNA that are inside LADS
 			$line =~ /(.{1,6})\t.\tmiRNA_primary_transcript\t(\d+)\s(\d+).+Name=(.+\b)/;
+			# push @input_mir, [$1, $2, $3, $4];
 			my $mir_name = substr $4,4,(length $4);
 			push @input_mir, [$1, $2, $3, $mir_name];
 		}
 	}
 }
 elsif( (@indata[3]) =~/.+Caenorhabditis elegans.+/ ){
-   $species = 'Caenorhabditis elegans';
+   $species = 'Caenorhabditis elegans'; 
    print "File is from C.Elegans\n";
     foreach  my $line (@indata ){
 		chomp $line;
 		if ($line =~ /(.{1,6})\t.\tmiRNA_primary_transcript/){
 			# This is for printing out the names of the miRNA that are inside LADS
 			$line =~ /(.{1,6})\t.\tmiRNA_primary_transcript\t(\d+)\s(\d+).+Name=(.+\b)/;
+			# push @input_mir, [$1, $2, $3, $4];
 			my $mir_name = substr $4,4,(length $4);
 			push @input_mir, [$1, $2, $3, $mir_name];
 		}
@@ -264,6 +276,7 @@ for ( my $i = 0;$i < $mir_scalar;$i++){
 			}
 			if ( $temp_number >=0 ){
 				push @temp_arrayH, [ $temp_number, $input_mir[$i][3],$input_genes[$j][3],$input_mir[$i][0] ];
+				
 			}
 		}
 	}
@@ -272,7 +285,7 @@ for ( my $i = 0;$i < $mir_scalar;$i++){
 	my $per = int(($i/$mir_scalar)*100);
 	print "\b\b\b\b$per%";
 }
-print $OUT3 Dumper @input_mir;
+	print $OUT3 @input_mir;
 	print "\b\b\b\bComputation is complete\n";
 	#Create a array's from known mir inside lad containing only names
 	my @mir_wi_lad_name;
@@ -322,7 +335,7 @@ print $OUT3 Dumper @input_mir;
 	foreach my $line (@mir_wi_lad){	
 		$mir_count{$$line[0]}++;
 	}
-	#Here i save every chromosome name to an array
+	#Here i save every chromosome name to an array 
 	foreach my $k (@chrom_names){
 		if ( defined $mir_count{$k} ){
 		next;
@@ -330,6 +343,7 @@ print $OUT3 Dumper @input_mir;
 		$mir_count{$k} = 0; 
 		}
 	}
+
 	#Do calculation for miRNA within cLADS
 	my @chr_number_wi;
 	my @chr_number_ot;
@@ -353,9 +367,8 @@ foreach my $k (sort {substr($a, 3) <=> substr($b, 3) || substr($a, 3) cmp substr
 	$print_out_wi_numb .= "$mir_count{$k},";
 	print "$k = $mir_count{$k}\n";
 }
-my $test= endfix($print_out_wi_numb);
+# my $test= endfix($print_out_wi_numb);
 
-# $print_out_wi_name = substr $print_out_wi_name, 0,(length($print_out_wi_name)-1);  substr $print_out_wi_name, 0,(length($print_out_wi_name)-1);  
 $print_out_wi_name = endfix($print_out_wi_name);
 $print_out_wi_numb = endfix($print_out_wi_numb);
 
@@ -369,12 +382,10 @@ foreach my $k (sort {substr($a, 3) <=> substr($b, 3) || substr($a, 3) cmp substr
 	$print_out_ot_numb .= "$mir_count_out{$k},";
 	print "$k = $mir_count_out{$k}\n";	
 }
+# foreach my $k (sort {substr($a, 3) <=> substr($b, 3) || substr($a, 3) cmp substr($b, 3)} keys %gene_count){	
+# }
 $print_out_ot_name = endfix ($print_out_ot_name);
 $print_out_ot_numb = endfix ($print_out_ot_numb);
-
-#Fixing element for a javascript variable.
-# $standard_printing_wi = endfix($standard_printing_wi);
-# $standard_prinintg_ot = endfix($standard_prinintg_ot);
 
 #Start printing out for text file
 print $OUT "\nA list of miR's that Ladimir identidies as within cLADS"; 
@@ -435,6 +446,47 @@ foreach my $g(@final_array){
 }
 $print_genes = endfix ($print_genes);
 
+###### START GENE DENSITY
+	my %gene_count;
+	my $print_genedensity_names;
+	my $print_genedensity_numbers;
+	
+	foreach my $k ( @input_genes){
+		if ( $$k[0] ~~ @chrom_names){
+			$gene_count{$$k[0]}++;
+		}
+	}
+	# Sorting and printing out geneomic information
+	my @gene_quantity;
+	foreach my $k (sort {substr($a, 3) <=> substr($b, 3) || substr($a, 3) cmp substr($b, 3)} keys %gene_count){
+		$print_genedensity_names .= "\"$k\","; 
+		push @gene_quantity, $gene_count{$k};
+	}
+	$print_genedensity_names = endfix ($print_genedensity_names);
+
+	##### Gene Density Calculations
+	my @chr_size;
+	##known chromosome sizes in Mega base pairs.
+	if ($species eq 'Homo sapiens'){
+		@chr_size= ( 155,59,249,243,198,191,180,171,159,146,141,135,135,133,114,107,102,90,81,78,59,63,48,51 );
+	};
+	if($species eq 'Mus musculus'){
+		@chr_size = ( 162,195,182,160,157,152,150,145,129,125,131,122,120,120,125,104,91,95,91,61 );
+	};
+	if($species eq 'Drosophila melanogaster'){
+		@chr_size = ( 22.4,23.0,21.2,24.4,27.9,1.4 );
+	};
+	if($species eq 'Caenorhabditis elegans'){
+		@chr_size = ( 14.9,15.3,13.8,18.5,20.9,17.1 );
+	};
+	my @gene_density;
+	for ( my $i=0; $i < scalar @gene_quantity; $i++){
+		my $gene_density_temp;
+		$gene_density_temp =  sprintf ("%.1f", $gene_quantity[$i]/$chr_size[$i] );
+		$print_genedensity_numbers .= "$gene_density_temp,";
+	}
+	$print_genedensity_numbers = endfix ($print_genedensity_numbers);
+
 ##### START HTML document printing.
 my $dt = DateTime->now;
 print $dt,"\n";
@@ -447,10 +499,14 @@ my $precent = int(($mir_ot_number/$mir_all_number)*100);
 print $OUT2 "<!DOCTYPE html>
 <html>
   <head>
+  <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\">
+  <meta content=\"utf-8\" http-equiv=\"encoding\">
   <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js\"></script>
   <script src=\"https://code.highcharts.com/highcharts.js\"></script>
   <script src=\"https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
   <link rel=\"stylesheet\" href=\"https://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\">
+  <script src=\"http://code.highcharts.com/modules/exporting.js\"></script>
+
   </head>
 	<style type=\"text/css\">
 	body {font-family: \"Times New Roman\";font-size: 20px;}
@@ -463,8 +519,8 @@ print $OUT2 "<!DOCTYPE html>
 	#left_side h2 {margin-top:8px;}
 	#left_side h2,h3 {margin-left:15px;}
 	#left_side p{margin-left:25px;}	
-	.disp_windows{position:relative;left:400px;top:115px;height:450px;width:1000px;}
-	.hidden_tab {display:none;}
+	.disp_windows{position:relative;left:360px;top:115px;height:450px;width:1000px;}
+	.hidden_tab {display:none;} 
 	nav{position:fixed;left:350px;top:60px;width:100%;z-index:9;}
 	ul {list-style-type: none;margin: 0;padding: 0;	overflow: hidden;background-color: #333;}
 	li {float: left;}
@@ -472,7 +528,7 @@ print $OUT2 "<!DOCTYPE html>
 	li a:hover:not(.active) {background-color: #4CAF50;}	
 	.active {background-color: #4CAF50;}
 	</style>
-  </head>
+
 	<body>
 	<header>
 	<h1>LADIMIR analysis report</h1>
@@ -480,17 +536,17 @@ print $OUT2 "<!DOCTYPE html>
 	</header>
 	<nav id=\"nav_bar\" role=\"navigation\">
 		<ul>
-		<li id=\"one\" class=\"active\"><a href=\"#graph\">Graph</a></li>
-		<li id=\"two\" ><a href=\"#mir_in\">miRNA within cLAD</a></li>
-		<li id=\"three\" ><a href=\"#mir_out\">miRNA outside cLAD</a></li>
-		<li id=\"four\" ><a href=\"#genes\">Genes</a></li>
+		<li id=\"one\" class=\"active\"><a href=\"#graph\">Colocalization</a></li>
+		<li id=\"three\" ><a href=\"#mir_in\">Table 1: miRNA Within cLAD</a></li>
+		<li id=\"four\"><a href=\"#mir_out\">Table 2: miRNA outside cLAD</a></li>
+		<li id=\"five\"><a href=\"#genes\">miRNA Geneomic Context</a></li>
 		</ul>
 	</nav>
 	
 	<div id=\"graph\" class=\"disp_windows\" >
-		<div id=\"container\" style=\"min-width: 600px; max-width: auto; height: 600px; margin: 0 0\"></div>
+		<div id=\"container\" style=\"min-width: 600px; max-width: auto; height: 600px; width: 1200px; margin: 0 0\"></div>
 	</div>
-	
+		
 	<div id=\"mir_in\" class=\"disp_windows hidden_tab\" >
 		<table id=\"Table\" class=\"display\" width=\"80%\"></table>
 	</div>
@@ -499,9 +555,10 @@ print $OUT2 "<!DOCTYPE html>
 		<table id=\"Table2\" class=\"display\" width=\"80%\"></table>
 	</div>
 	
-	<div id=\"genes\" class=\"disp_windows hidden_tab\" >
+	<div id=\"genes\" class=\"disp_windows hidden_tab\">
 		<table id=\"Table3\" class=\"display\" width=\"80%\"></table>
 	</div>
+
 	
 	<div id=\"left_side\" class=\"\">
 		<div id=\"results\"> 
@@ -511,7 +568,7 @@ print $OUT2 "<!DOCTYPE html>
 			<h3>miRNA analysis</h3>
 			<p>Nr of miR's within LADS: $mir_wi_number </br>
 			Nr of miR's outside of LADS : $mir_ot_number</br>
-			Total numbers of miRNA: $mir_all_number</p>	
+			Total numbers of pre-miRNA: $mir_all_number</p>	
 			<p>% of miRNA outside LADs: $precent%</p>
 			<h3>Gene file analysis</h3>
 			<p>Nr of genes found in file : $genes_number</p>
@@ -523,13 +580,20 @@ print $OUT2 "<!DOCTYPE html>
 	</div>
   </body>
   <script>
+
  \$(function () {
     \$('#container').highcharts({
-        chart: {
-            type: 'bar'
+
+		    exporting: {
+            sourceWidth: 1200,
+            sourceHeight: 600,
+            // scale: 2 (default)
+            chartOptions: {
+                subtitle: null
+            }
         },
         title: {
-            text: 'Number of miRNAs within and outside of cLADS.'
+            text: 'Number of miRNAs within , outside of cLADS and gene density.'
         },
         xAxis: {
             categories: [$print_out_ot_name],
@@ -537,18 +601,28 @@ print $OUT2 "<!DOCTYPE html>
                 text: null
             }
         },
-        yAxis: {
-            min: 0,
-            title: {
-                text: 'Nr of miRNA',
-                align: 'high'
+        yAxis: [{ // Primary yAxis
+			
+			labels: {
+                format: '{value} miRNAs',
+                style: {
+                    color: Highcharts.getOptions().colors[1]
+                }
             },
+
+        }, { // Secondary yAxis
+			
             labels: {
-                overflow: 'justify'
-            }
-        },
+                format: '{value} Genes/Mbp',
+                style: {
+                    color: Highcharts.getOptions().colors[0]
+                }
+            },
+            opposite: true
+        }],
+       
         tooltip: {
-            valueSuffix: ' miRNAs'
+            shared : false
         },
         plotOptions: {
             bar: {
@@ -561,7 +635,7 @@ print $OUT2 "<!DOCTYPE html>
             layout: 'vertical',
             align: 'right',
             verticalAlign: 'top',
-            x: -40,
+            x: -120,
             y: 0,
             floating: true,
             borderWidth: 1,
@@ -573,12 +647,19 @@ print $OUT2 "<!DOCTYPE html>
         },
         series: [{
             name: 'Within cLAD',
-            data: [$print_out_wi_numb]
+			type: 'column',
+			data: [$print_out_wi_numb]            
         },{
             name: 'Outside cLAD',
-            data: [$print_out_ot_numb]
-        },
-		]
+			type: 'column',
+			data: [$print_out_ot_numb]
+           
+        },{
+            name: 'Gene Density',
+            type: 'column',
+			yAxis: 1,
+            data: [$print_genedensity_numbers]        
+		}]
     });
 });
 var dataSet = [
@@ -638,44 +719,47 @@ var dataSet3 =[
 				\$(\"#genes\").addClass('hidden_tab');
 				
 				\$(\"#one\").addClass('active');
-				\$(\"#two\").removeClass('active');
 				\$(\"#three\").removeClass('active');
 				\$(\"#four\").removeClass('active');
+				\$(\"#five\").removeClass('active');
 			break;
+			
 			case \"mir_in\":
 				\$(\"#\"+hash).removeClass('hidden_tab'); 
 				\$(\"#graph\").addClass('hidden_tab');
 				\$(\"#mir_out\").addClass('hidden_tab');
 				\$(\"#genes\").addClass('hidden_tab');
-				
-				\$(\"#two\").addClass('active');
+
+				\$(\"#three\").addClass('active');
 				\$(\"#one\").removeClass('active');
-				\$(\"#three\").removeClass('active');
 				\$(\"#four\").removeClass('active');
+				\$(\"#five\").removeClass('active');
 			break;
+			
 			case \"mir_out\":
 				\$(\"#\"+hash).removeClass('hidden_tab'); 
 				\$(\"#graph\").addClass('hidden_tab');
 				\$(\"#mir_in\").addClass('hidden_tab');
 				\$(\"#genes\").addClass('hidden_tab');
-				
-				\$(\"#three\").addClass('active');
+
+				\$(\"#four\").addClass('active');
 				\$(\"#one\").removeClass('active');
-				\$(\"#two\").removeClass('active');
-				\$(\"#four\").removeClass('active');
-				
+				\$(\"#three\").removeClass('active');
+				\$(\"#five\").removeClass('active');
 			break;
 			case \"genes\":
 				\$(\"#\"+hash).removeClass('hidden_tab'); 
 				\$(\"#graph\").addClass('hidden_tab');
 				\$(\"#mir_out\").addClass('hidden_tab');
 				\$(\"#mir_in\").addClass('hidden_tab');
+
 				
-				\$(\"#four\").addClass('active');
+				\$(\"#five\").addClass('active');
 				\$(\"#one\").removeClass('active');
-				\$(\"#two\").removeClass('active');
 				\$(\"#three\").removeClass('active');
+				\$(\"#four\").removeClass('active');
 			break;
+			
 		}
 	});
 }); 
@@ -687,5 +771,5 @@ var dataSet3 =[
 close $LADFILE;
 close $OUT;
 close $OUT2;
-close $OUT3;
+close $OUT3; ######REMOVE LATER
 }
