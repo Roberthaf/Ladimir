@@ -1,4 +1,4 @@
-Ladimir - A search tool for Lamina acosiated domain and miRNA research
+Ladimir - Exploring lamina associated domains and miRNA colocalization
 ----------------------------------------------------------------------
 
 Installation
