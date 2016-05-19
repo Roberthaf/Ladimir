@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+  <meta content="utf-8" http-equiv="encoding">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
@@ -19,8 +21,8 @@
 	#left_side h2 {margin-top:8px;}
 	#left_side h2,h3 {margin-left:15px;}
 	#left_side p{margin-left:25px;}	
-	.disp_windows{position:relative;left:400px;top:115px;height:450px;width:1000px;}
-	.hidden_tab {display:none;}
+	.disp_windows{position:relative;left:360px;top:115px;height:450px;width:1000px;}
+	.hidden_tab {display:none;} 
 	nav{position:fixed;left:350px;top:60px;width:100%;z-index:9;}
 	ul {list-style-type: none;margin: 0;padding: 0;	overflow: hidden;background-color: #333;}
 	li {float: left;}
@@ -28,25 +30,25 @@
 	li a:hover:not(.active) {background-color: #4CAF50;}	
 	.active {background-color: #4CAF50;}
 	</style>
-  </head>
+
 	<body>
 	<header>
 	<h1>LADIMIR analysis report</h1>
-	<p id="date">2016-03-16T17:12:06</p>
+	<p id="date">2016-04-12T11:12:40</p>
 	</header>
 	<nav id="nav_bar" role="navigation">
 		<ul>
-		<li id="one" class="active"><a href="#graph">Graph</a></li>
-		<li id="two" ><a href="#mir_in">miRNA within cLAD</a></li>
-		<li id="three" ><a href="#mir_out">miRNA outside cLAD</a></li>
-		<li id="four" ><a href="#genes">Genes</a></li>
+		<li id="one" class="active"><a href="#graph">Colocalization</a></li>
+		<li id="three" ><a href="#mir_in">Table 1: miRNA Within cLAD</a></li>
+		<li id="four"><a href="#mir_out">Table 2: miRNA outside cLAD</a></li>
+		<li id="five"><a href="#genes">miRNA Geneomic Context</a></li>
 		</ul>
 	</nav>
 	
 	<div id="graph" class="disp_windows" >
-		<div id="container" style="min-width: 600px; max-width: auto; height: 600px; margin: 0 0"></div>
+		<div id="container" style="min-width: 600px; max-width: auto; height: 600px; width: 1200px; margin: 0 0"></div>
 	</div>
-	
+		
 	<div id="mir_in" class="disp_windows hidden_tab" >
 		<table id="Table" class="display" width="80%"></table>
 	</div>
@@ -55,9 +57,10 @@
 		<table id="Table2" class="display" width="80%"></table>
 	</div>
 	
-	<div id="genes" class="disp_windows hidden_tab" >
+	<div id="genes" class="disp_windows hidden_tab">
 		<table id="Table3" class="display" width="80%"></table>
 	</div>
+
 	
 	<div id="left_side" class="">
 		<div id="results"> 
@@ -67,7 +70,7 @@
 			<h3>miRNA analysis</h3>
 			<p>Nr of miR's within LADS: 340 </br>
 			Nr of miR's outside of LADS : 1541</br>
-			Total numbers of miRNA: 1881</p>	
+			Total numbers of pre-miRNA: 1881</p>	
 			<p>% of miRNA outside LADs: 81%</p>
 			<h3>Gene file analysis</h3>
 			<p>Nr of genes found in file : 19826</p>
@@ -79,13 +82,20 @@
 	</div>
   </body>
   <script>
+
  $(function () {
     $('#container').highcharts({
-        chart: {
-            type: 'bar'
+
+		    exporting: {
+            sourceWidth: 1200,
+            sourceHeight: 600,
+            // scale: 2 (default)
+            chartOptions: {
+                subtitle: null
+            }
         },
         title: {
-            text: 'Number of miRNAs within and outside of cLADS.'
+            text: 'Number of miRNAs within , outside of cLADS and gene density.'
         },
         xAxis: {
             categories: ['chrX','chrY','chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22'],
@@ -93,18 +103,28 @@
                 text: null
             }
         },
-        yAxis: {
-            min: 0,
-            title: {
-                text: 'Nr of miRNA',
-                align: 'high'
+        yAxis: [{ // Primary yAxis
+			
+			labels: {
+                format: '{value} miRNAs',
+                style: {
+                    color: Highcharts.getOptions().colors[1]
+                }
             },
+
+        }, { // Secondary yAxis
+			
             labels: {
-                overflow: 'justify'
-            }
-        },
+                format: '{value} Genes/Mbp',
+                style: {
+                    color: Highcharts.getOptions().colors[0]
+                }
+            },
+            opposite: true
+        }],
+       
         tooltip: {
-            valueSuffix: ' miRNAs'
+            shared : false
         },
         plotOptions: {
             bar: {
@@ -117,7 +137,7 @@
             layout: 'vertical',
             align: 'right',
             verticalAlign: 'top',
-            x: -40,
+            x: -120,
             y: 0,
             floating: true,
             borderWidth: 1,
@@ -129,12 +149,19 @@
         },
         series: [{
             name: 'Within cLAD',
-            data: [54,0,28,19,22,24,22,15,17,18,10,17,16,12,6,6,2,20,3,13,2,8,3,3]
+			type: 'column',
+			data: [54,0,28,19,22,24,22,15,17,18,10,17,16,12,6,6,2,20,3,13,2,8,3,3]            
         },{
             name: 'Outside cLAD',
-            data: [64,2,130,96,72,38,52,52,61,70,74,52,86,64,34,92,67,59,106,22,139,40,26,43]
-        },
-		]
+			type: 'column',
+			data: [64,2,130,96,72,38,52,52,61,70,74,52,86,64,34,92,67,59,106,22,139,40,26,43]
+           
+        },{
+            name: 'Gene Density',
+            type: 'column',
+			yAxis: 1,
+            data: [5.3,0.9,8.2,5.1,5.4,3.9,4.8,6.1,5.6,4.6,5.4,5.4,9.6,7.8,2.8,5.8,5.8,9.5,14.6,3.4,24.7,8.6,4.8,8.6]        
+		}]
     });
 });
 var dataSet = [
@@ -194,44 +221,47 @@ $( document ).ready(function() {
 				$("#genes").addClass('hidden_tab');
 				
 				$("#one").addClass('active');
-				$("#two").removeClass('active');
 				$("#three").removeClass('active');
 				$("#four").removeClass('active');
+				$("#five").removeClass('active');
 			break;
+			
 			case "mir_in":
 				$("#"+hash).removeClass('hidden_tab'); 
 				$("#graph").addClass('hidden_tab');
 				$("#mir_out").addClass('hidden_tab');
 				$("#genes").addClass('hidden_tab');
-				
-				$("#two").addClass('active');
+
+				$("#three").addClass('active');
 				$("#one").removeClass('active');
-				$("#three").removeClass('active');
 				$("#four").removeClass('active');
+				$("#five").removeClass('active');
 			break;
+			
 			case "mir_out":
 				$("#"+hash).removeClass('hidden_tab'); 
 				$("#graph").addClass('hidden_tab');
 				$("#mir_in").addClass('hidden_tab');
 				$("#genes").addClass('hidden_tab');
-				
-				$("#three").addClass('active');
+
+				$("#four").addClass('active');
 				$("#one").removeClass('active');
-				$("#two").removeClass('active');
-				$("#four").removeClass('active');
-				
+				$("#three").removeClass('active');
+				$("#five").removeClass('active');
 			break;
 			case "genes":
 				$("#"+hash).removeClass('hidden_tab'); 
 				$("#graph").addClass('hidden_tab');
 				$("#mir_out").addClass('hidden_tab');
 				$("#mir_in").addClass('hidden_tab');
+
 				
-				$("#four").addClass('active');
+				$("#five").addClass('active');
 				$("#one").removeClass('active');
-				$("#two").removeClass('active');
 				$("#three").removeClass('active');
+				$("#four").removeClass('active');
 			break;
+			
 		}
 	});
 }); 
