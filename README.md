@@ -3,7 +3,7 @@ Ladimir - Exploring lamina associated domains and miRNA colocalization
 
 Installation
 ------------
-The software is a stand alone Perl. That requirs Perl version 5.2 or above to run.
+LADiMIR is a stand alone Perl tool. That requirs Perl version 5.2 or above to run.
 
 Usage
 -----
