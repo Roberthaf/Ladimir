@@ -9,6 +9,9 @@
 #
 # Modules:
 #	none
+#
+# Subroutine
+#	Name: endfix
 #		
 # Procedure:
 #	1. Read in the LADs reagion and miRNA data
@@ -19,7 +22,7 @@
 #	4. Analizes and create statistics and output files 
 #
 #
-#		ATH: Hvernig output? Hvernig á að skoða þeta.
+#		
 #
 #
 # usage: Ladimir_v3.pl [LAD file] [miRNA file] [Gene file] "name of output"
@@ -64,7 +67,7 @@ if (defined $options{o}){
 	print "outfile is not specified\n";
 	$outfile= "outfile.txt";
 }
-if ($options{h} ) {
+if ( ($options{h} or $options{help} ) ) {
 print <<EOF;
 
 
@@ -132,8 +135,6 @@ open ( my $GENEFILE, '<', $gene_file )
 open my $OUT, '>', $outfile or die "Cannot open: $outfile";
 open my $OUT2, '>', $outfile2 or die "Cannot open: $outfile2";
 
-##########PRINT OUT FILE USED FOR TROUBLE SHOOTING. REMOVE LATER
-open my $OUT3, '>', $outfile3 or die "Cannot open: $outfile3";
 ##########
 
 
@@ -270,13 +271,11 @@ for ( my $i = 0;$i < $mir_scalar;$i++){
 		 if ( $input_mir[$i][0] eq $input_genes[$j][0] ){			
 			my $temp_number = 0;
 			$temp_number = ( $input_mir[$i][1]-$input_genes[$j][1] );		
-			
 			if ( $temp_number <= 0 ){
 				push @temp_arrayL, [$temp_number, $input_mir[$i][3],$input_genes[$j][3],$input_mir[$i][0] ];
 			}
 			if ( $temp_number >=0 ){
-				push @temp_arrayH, [ $temp_number, $input_mir[$i][3],$input_genes[$j][3],$input_mir[$i][0] ];
-				
+				push @temp_arrayH, [$temp_number, $input_mir[$i][3],$input_genes[$j][3],$input_mir[$i][0] ];
 			}
 		}
 	}
@@ -285,12 +284,11 @@ for ( my $i = 0;$i < $mir_scalar;$i++){
 	my $per = int(($i/$mir_scalar)*100);
 	print "\b\b\b\b$per%";
 }
-	print $OUT3 @input_mir;
 	print "\b\b\b\bComputation is complete\n";
 	#Create a array's from known mir inside lad containing only names
 	my @mir_wi_lad_name;
 	my @mir_wi_lad_chr;
-	#Take out the miRNA names.
+	#CApture the miRNA names.
 	for my $i (@mir_wi_lad){
 		push @mir_wi_lad_name, @$i[3];
 	}
@@ -300,6 +298,7 @@ for ( my $i = 0;$i < $mir_scalar;$i++){
 	}
 	#Check to see which miRNA are on the outside or between catagory
 	my @mir_os_lad_new = array_minus (@mir_all_lad_name,@mir_wi_lad_name); 
+	
 	#Create an array which contains the miR's that are outside of LAD
 	my @mir_os_lad_temp;
 	foreach my $line (@input_mir){
@@ -316,22 +315,22 @@ for ( my $i = 0;$i < $mir_scalar;$i++){
 		my ($chr,$spst,$epst,$name) = split /:/, $line;
 		push @mir_os_lad, [ $chr, $spst, $epst, $name];
 	}
-	#Start printing out
+	#Start printing out infromation to screen
 	print "Number of miR's outside of LADS regions: ", scalar @mir_os_lad,"\n";
 	print "Number of miR's within LADS: ", scalar @mir_wi_lad ,"\n";
 	print "miRNA total numbers: ", scalar @mir_all_lad_name, "\n";
 	print $OUT "Number of miR's outside of LADS regions: ", scalar @mir_os_lad,"\n";
 	print $OUT "Number of miR's within LADS: ", scalar @mir_wi_lad ,"\n";
 	print $OUT "miRNA total numbers: ", scalar @mir_all_lad_name, "\n";
-	##Here I will start the stastistical analysis
+	#Here I create hashes to count nr of miRNAs
 	my %mir_count; 
 	my %mir_count_out;
-	##Here I check to see the number of miR outside
+	##Here I check to see the number of miR outside cLADs
 	foreach my $line (@mir_os_lad){
 		$mir_count_out{$$line[0]}++;
 	}
 	my @chrom_names = keys %mir_count_out;
-	##Here I check to see the number of miR within
+	#Here I check to see the number of miR within cLADs
 	foreach my $line (@mir_wi_lad){	
 		$mir_count{$$line[0]}++;
 	}
@@ -343,14 +342,13 @@ for ( my $i = 0;$i < $mir_scalar;$i++){
 		$mir_count{$k} = 0; 
 		}
 	}
-
 	#Do calculation for miRNA within cLADS
 	my @chr_number_wi;
 	my @chr_number_ot;
 	print "\nThis tables show how many miRNA are inside cLADs each chr\n";
 	print $OUT "This tables show how many miRNA are inside cLADs each chr\n";
+	
 	#Subroutine to fix a comma at the end of an element when writing out a javascript variable.
-
 	sub endfix{
 		my $fix = $_[0];
 		$fix = substr $fix, 0,(length($fix)-1); 
@@ -367,8 +365,7 @@ foreach my $k (sort {substr($a, 3) <=> substr($b, 3) || substr($a, 3) cmp substr
 	$print_out_wi_numb .= "$mir_count{$k},";
 	print "$k = $mir_count{$k}\n";
 }
-# my $test= endfix($print_out_wi_numb);
-
+#Fix javascript variables
 $print_out_wi_name = endfix($print_out_wi_name);
 $print_out_wi_numb = endfix($print_out_wi_numb);
 
@@ -382,8 +379,7 @@ foreach my $k (sort {substr($a, 3) <=> substr($b, 3) || substr($a, 3) cmp substr
 	$print_out_ot_numb .= "$mir_count_out{$k},";
 	print "$k = $mir_count_out{$k}\n";	
 }
-# foreach my $k (sort {substr($a, 3) <=> substr($b, 3) || substr($a, 3) cmp substr($b, 3)} keys %gene_count){	
-# }
+#Fix javascript variables
 $print_out_ot_name = endfix ($print_out_ot_name);
 $print_out_ot_numb = endfix ($print_out_ot_numb);
 
@@ -394,6 +390,7 @@ print $OUT "\nChr name\tStart pst\tEnd pst\tmiR name\n";
 #Starting creating javascript variables.
 my $Datatable_info;	
 my $Datatable_info_ot;
+#Create a JavaScript variable for datatable
 foreach my $i(@mir_wi_lad){
 	print $OUT "@$i\n";
 	$Datatable_info .= "\[\"$$i[3]\",\"$$i[1]\",\"$$i[2]\",\"$$i[0]\"\],";	
@@ -413,16 +410,16 @@ my $genereport=0;
 foreach my $g(@final_array){
 	my $mir_name_temp;
 	my $temp_chromo;
-	#make sure there is always a name for the mir or the chromosome
+	#make sure there is always a name for the mir or the chromosome in the mirna genomic table
 	if(defined $$g[0][1]){
-	$mir_name_temp = $$g[0][1];
+		$mir_name_temp = $$g[0][1];
 	}else{
-	$mir_name_temp = $$g[1][1];
+		$mir_name_temp = $$g[1][1];
 	}
 	if(defined $$g[0][3]){
-	$temp_chromo = $$g[0][3];
+		$temp_chromo = $$g[0][3];
 	}else{
-	$temp_chromo = $$g[1][3];
+			$temp_chromo = $$g[1][3];
 	}
 	
 	my $within;
@@ -435,18 +432,18 @@ foreach my $g(@final_array){
 	
 	if ( $$g[0][0] <= $cutoff and $$g[1][0]>= $cutoff_down) {
 		if ($mir_name_temp eq ''){
-		# next;
+			#next-do nothing;
 		}else{
-		my $temp_Number = -1*$$g[1][0]; #Change the number to positive.
-		$print_genes .= "\[\"$mir_name_temp\",\"$$g[0][2]\",\"$$g[0][0]\",\"$$g[1][2]\",\"$temp_Number\",\"$temp_chromo\"\,\"$within\"],";
-		print $OUT "miRNA name ",$mir_name_temp,"\t Upstream Gene ", $$g[0][2],"\t", $$g[0][0],"\t Downstream Gene ", $$g[1][2],"\t", $temp_Number,"\tChromosome ", $temp_chromo ,"\tLAD localazation\s", $within,"\n";
-		$genereport++;
+			my $temp_Number = -1*$$g[1][0]; #Change the number to positive for downstream genes.
+			$print_genes .= "\[\"$mir_name_temp\",\"$$g[0][2]\",\"$$g[0][0]\",\"$$g[1][2]\",\"$temp_Number\",\"$temp_chromo\"\,\"$within\"],";
+			print $OUT "miRNA name ",$mir_name_temp,"\t Upstream Gene ", $$g[0][2],"\t", $$g[0][0],"\t Downstream Gene ", $$g[1][2],"\t", $temp_Number,"\tChromosome ", $temp_chromo ,"\tLAD localazation\s", $within,"\n";
+			$genereport++;
 		}
 	}
 }
 $print_genes = endfix ($print_genes);
 
-###### START GENE DENSITY
+###### Start Gene density
 	my %gene_count;
 	my $print_genedensity_names;
 	my $print_genedensity_numbers;
@@ -463,10 +460,10 @@ $print_genes = endfix ($print_genes);
 		push @gene_quantity, $gene_count{$k};
 	}
 	$print_genedensity_names = endfix ($print_genedensity_names);
-
-	##### Gene Density Calculations
+########################################################################################################
+##### Gene Density Calculations
 	my @chr_size;
-	##known chromosome sizes in Mega base pairs.
+	##known*(at this time) chromosome sizes in Mega base pairs.
 	if ($species eq 'Homo sapiens'){
 		@chr_size= ( 155,59,249,243,198,191,180,171,159,146,141,135,135,133,114,107,102,90,81,78,59,63,48,51 );
 	};
@@ -485,17 +482,22 @@ $print_genes = endfix ($print_genes);
 		$gene_density_temp =  sprintf ("%.1f", $gene_quantity[$i]/$chr_size[$i] );
 		$print_genedensity_numbers .= "$gene_density_temp,";
 	}
+	#
 	$print_genedensity_numbers = endfix ($print_genedensity_numbers);
 
-##### START HTML document printing.
+###############################################################################
+## Start HTML file printing
 my $dt = DateTime->now;
 print $dt,"\n";
 
-my $mir_ot_number = scalar @mir_os_lad;my $mir_wi_number = scalar @mir_wi_lad;
+my $mir_ot_number = scalar @mir_os_lad;
+my $mir_wi_number = scalar @mir_wi_lad;
 my $mir_all_number = scalar @mir_all_lad_name;
 my $genes_number = scalar @input_genes;
 my $precent = int(($mir_ot_number/$mir_all_number)*100);
 
+###########################################################################################
+##START PRINTING OUT HTML CODE.
 print $OUT2 "<!DOCTYPE html>
 <html>
   <head>
@@ -771,5 +773,4 @@ var dataSet3 =[
 close $LADFILE;
 close $OUT;
 close $OUT2;
-close $OUT3; ######REMOVE LATER
 }
